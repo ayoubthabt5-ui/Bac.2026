@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سوجيات البكالوريا Online 📘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Cairo",sans-serif;}
+body{
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white; min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; padding:20px;
+  transition:0.5s all;
+}
+body.light{
+  background:linear-gradient(135deg,#ece9e6,#ffffff); color:#111;
+}
+h1{margin-top:20px;margin-bottom:10px;text-shadow:0 0 10px #00bcd4;}
+#themeToggle{position:fixed;top:15px;left:15px;background:#00bcd4;border:none;color:white;padding:10px 15px;border-radius:20px;cursor:pointer;transition:0.3s;}
+#themeToggle:hover{transform:scale(1.1);}
+.filter-bar{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap;justify-content:center;}
+.filter-bar select{padding:10px;border-radius:10px;border:none;}
+.exam-list{width:100%;max-width:500px;margin-top:20px;display:flex;flex-direction:column;gap:15px;}
+.exam-btn{background:rgba(255,255,255,0.1);border:none;padding:20px;border-radius:15px;color:inherit;font-size:18px;font-weight:bold;text-align:center;cursor:pointer;box-shadow:0 0 10px rgba(0,255,255,0.3);transition:all 0.3s ease;position:relative;}
+.exam-btn:hover{background:rgba(255,255,255,0.2);transform:scale(1.05);box-shadow:0 0 25px #00e1ff;}
+.exam-btn button.delete-btn{position:absolute;top:8px;left:8px;background:red;border:none;padding:5px 8px;border-radius:8px;color:white;cursor:pointer;font-size:12px;}
+.exam-btn button.delete-btn:hover{background:#ff5555;}
+.add-btn{background:#00bcd4;color:white;border:none;padding:15px 25px;border-radius:30px;margin-top:20px;font-size:16px;cursor:pointer;box-shadow:0 0 15px #00bcd4;transition:0.3s;}
+.add-btn:hover{transform:scale(1.05);box-shadow:0 0 25px #00e1ff;}
+#addModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;}
+.modal-content{background:#fff;color:#111;padding:20px;border-radius:20px;width:90%;max-width:400px;text-align:right;box-shadow:0 0 20px #00bcd4;}
+.modal-content input,.modal-content select{width:100%;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #ccc;}
+.modal-content button{background:#00bcd4;color:white;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;margin-top:8px;}
+.close{background:red;color:white;border:none;padding:8px 15px;border-radius:10px;cursor:pointer;}
+#examView{display:none;flex-direction:column;align-items:center;width:100%;max-width:500px;margin-top:20px;}
+#examView img{max-width:100%;border-radius:10px;margin:15px 0;}
+#backBtn{background:#00bcd4;color:white;border:none;padding:10px 20px;border-radius:15px;margin-bottom:15px;cursor:pointer;}
+#backBtn:hover{transform:scale(1.05);}
+</style>
+</head>
+<body>
+
+<button id="themeToggle">🌙</button>
+<h1>📘 سوجيات البكالوريا Online</h1>
+
+<div class="filter-bar">
+  <select id="filterLevel">
+    <option value="">كل المستويات</option>
+    <option value="الأولى ثانوي">الأولى ثانوي</option>
+    <option value="الثانية ثانوي">الثانية ثانوي</option>
+    <option value="النهائية">النهائية</option>
+  </select>
+  <select id="filterBranch">
+    <option value="">كل الشعب</option>
+    <option value="علوم تجريبية">علوم تجريبية</option>
+    <option value="رياضيات">رياضيات</option>
+    <option value="آداب وفلسفة">آداب وفلسفة</option>
+    <option value="تسيير واقتصاد">تسيير واقتصاد</option>
+  </select>
+</div>
+
+<div class="exam-list" id="examList"></div>
+<div id="examView">
+  <button id="backBtn">⬅️ رجوع</button>
+  <h2 id="viewTitle"></h2>
+  <img id="viewImage" src="">
+</div>
+
+<button class="add-btn" id="addExamBtn">➕ أضف امتحان جديد</button>
+
+<div id="addModal">
+  <div class="modal-content">
+    <h3>إضافة امتحان جديد</h3>
+    <input type="text" id="examTitle" placeholder="اسم الامتحان">
+    <select id="examLevel">
+      <option value="">اختر المستوى</option>
+      <option value="الأولى ثانوي">الأولى ثانوي</option>
+      <option value="الثانية ثانوي">الثانية ثانوي</option>
+      <option value="النهائية">النهائية</option>
+    </select>
+    <select id="examBranch">
+      <option value="">اختر الشعبة</option>
+      <option value="علوم تجريبية">علوم تجريبية</option>
+      <option value="رياضيات">رياضيات</option>
+      <option value="آداب وفلسفة">آداب وفلسفة</option>
+      <option value="تسيير واقتصاد">تسيير واقتصاد</option>
+    </select>
+    <input type="file" id="examImage" accept="image/*">
+    <br>
+    <button id="saveExam">حفظ</button>
+    <button class="close" id="closeModal">إغلاق</button>
+  </div>
+</div>
+
+<script>
+const themeToggle=document.getElementById("themeToggle");
+themeToggle.addEventListener("click",()=>{
+  document.body.classList.toggle("light");
+  themeToggle.textContent=document.body.classList.contains("light")?"🌞":"🌙";
+});
+
+const modal=document.getElementById("addModal");
+const openBtn=document.getElementById("addExamBtn");
+const closeBtn=document.getElementById("closeModal");
+const saveBtn=document.getElementById("saveExam");
+const list=document.getElementById("examList");
+const imgInput=document.getElementById("examImage");
+
+let imageData="";
+
+imgInput.addEventListener("change",()=>{
+  const file=imgInput.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=()=>{ imageData=reader.result; };
+    reader.readAsDataURL(file);
+  }
+});
+
+openBtn.onclick=()=>{modal.style.display="flex";}
+closeBtn.onclick=()=>{modal.style.display="none";}
+
+function saveExamsToStorage(exams){localStorage.setItem("exams",JSON.stringify(exams));}
+function loadExamsFromStorage(){return JSON.parse(localStorage.getItem("exams")||"[]");}
+
+const filterLevel=document.getElementById("filterLevel");
+const filterBranch=document.getElementById("filterBranch");
+
+function renderExams(){
+  list.innerHTML="";
+  const exams=loadExamsFromStorage();
+  const filtered=exams.filter(e=>{
+    return (!filterLevel.value || e.level===filterLevel.value) &&
+           (!filterBranch.value || e.branch===filterBranch.value);
+  });
+  filtered.forEach((exam,index)=>{
+    const btn=document.createElement("button");
+    btn.className="exam-btn";
+    btn.innerHTML=`📄 ${exam.title}<br><small>${exam.level} - ${exam.branch}</small>
+                   <button class="delete-btn">🗑️</button>`;
+    btn.querySelector(".delete-btn").onclick=(e)=>{
+      e.stopPropagation();
+      if(confirm("هل تريد حذف هذا الامتحان؟")){
+        const allExams=loadExamsFromStorage();
+        allExams.splice(index,1);
+        saveExamsToStorage(allExams);
+        renderExams();
+      }
+    };
+    btn.onclick=()=>{
+      document.getElementById("viewTitle").textContent=exam.title;
+      document.getElementById("viewImage").src=exam.image;
+      list.style.display="none";
+      modal.style.display="none";
+      document.getElementById("examView").style.display="flex";
+    };
+    list.appendChild(btn);
+  });
+}
+
+filterLevel.addEventListener("change",renderExams);
+filterBranch.addEventListener("change",renderExams);
+
+saveBtn.onclick=()=>{
+  const title=document.getElementById("examTitle").value;
+  const level=document.getElementById("examLevel").value;
+  const branch=document.getElementById("examBranch").value;
+  if(!title||!level||!branch||!imageData){
+    alert("الرجاء ملء كل المعلومات واختيار صورة الامتحان 📷");
+    return;
+  }
+  const newExam={title,level,branch,image:imageData};
+  const exams=loadExamsFromStorage();
+  exams.push(newExam);
+  saveExamsToStorage(exams);
+  renderExams();
+  modal.style.display="none";
+};
+
+document.getElementById("backBtn").onclick=()=>{
+  document.getElementById("examView").style.display="none";
+  list.style.display="flex";
+};
+
+renderExams();
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سوجيات البكالوريا Online 📘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Cairo",sans-serif;}
+body{
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white; min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; padding:20px;
+  transition:0.5s all;
+}
+body.light{
+  background:linear-gradient(135deg,#ece9e6,#ffffff); color:#111;
+}
+h1{margin-top:20px;margin-bottom:10px;text-shadow:0 0 10px #00bcd4;}
+#themeToggle{position:fixed;top:15px;left:15px;background:#00bcd4;border:none;color:white;padding:10px 15px;border-radius:20px;cursor:pointer;transition:0.3s;}
+#themeToggle:hover{transform:scale(1.1);}
+.filter-bar{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap;justify-content:center;}
+.filter-bar select{padding:10px;border-radius:10px;border:none;}
+.exam-list{width:100%;max-width:500px;margin-top:20px;display:flex;flex-direction:column;gap:15px;}
+.exam-btn{background:rgba(255,255,255,0.1);border:none;padding:20px;border-radius:15px;color:inherit;font-size:18px;font-weight:bold;text-align:center;cursor:pointer;box-shadow:0 0 10px rgba(0,255,255,0.3);transition:all 0.3s ease;position:relative;}
+.exam-btn:hover{background:rgba(255,255,255,0.2);transform:scale(1.05);box-shadow:0 0 25px #00e1ff;}
+.exam-btn button.delete-btn{position:absolute;top:8px;left:8px;background:red;border:none;padding:5px 8px;border-radius:8px;color:white;cursor:pointer;font-size:12px;}
+.exam-btn button.delete-btn:hover{background:#ff5555;}
+.add-btn{background:#00bcd4;color:white;border:none;padding:15px 25px;border-radius:30px;margin-top:20px;font-size:16px;cursor:pointer;box-shadow:0 0 15px #00bcd4;transition:0.3s;}
+.add-btn:hover{transform:scale(1.05);box-shadow:0 0 25px #00e1ff;}
+#addModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;}
+.modal-content{background:#fff;color:#111;padding:20px;border-radius:20px;width:90%;max-width:400px;text-align:right;box-shadow:0 0 20px #00bcd4;}
+.modal-content input,.modal-content select{width:100%;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #ccc;}
+.modal-content button{background:#00bcd4;color:white;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;margin-top:8px;}
+.close{background:red;color:white;border:none;padding:8px 15px;border-radius:10px;cursor:pointer;}
+#examView{display:none;flex-direction:column;align-items:center;width:100%;max-width:500px;margin-top:20px;}
+#examView img{max-width:100%;border-radius:10px;margin:15px 0;}
+#backBtn{background:#00bcd4;color:white;border:none;padding:10px 20px;border-radius:15px;margin-bottom:15px;cursor:pointer;}
+#backBtn:hover{transform:scale(1.05);}
+</style>
+</head>
+<body>
+
+<button id="themeToggle">🌙</button>
+<h1>📘 سوجيات البكالوريا Online</h1>
+
+<div class="filter-bar">
+  <select id="filterLevel">
+    <option value="">كل المستويات</option>
+    <option value="الأولى ثانوي">الأولى ثانوي</option>
+    <option value="الثانية ثانوي">الثانية ثانوي</option>
+    <option value="النهائية">النهائية</option>
+  </select>
+  <select id="filterBranch">
+    <option value="">كل الشعب</option>
+    <option value="علوم تجريبية">علوم تجريبية</option>
+    <option value="رياضيات">رياضيات</option>
+    <option value="آداب وفلسفة">آداب وفلسفة</option>
+    <option value="تسيير واقتصاد">تسيير واقتصاد</option>
+  </select>
+</div>
+
+<div class="exam-list" id="examList"></div>
+<div id="examView">
+  <button id="backBtn">⬅️ رجوع</button>
+  <h2 id="viewTitle"></h2>
+  <img id="viewImage" src="">
+</div>
+
+<button class="add-btn" id="addExamBtn">➕ أضف امتحان جديد</button>
+
+<div id="addModal">
+  <div class="modal-content">
+    <h3>إضافة امتحان جديد</h3>
+    <input type="text" id="examTitle" placeholder="اسم الامتحان">
+    <select id="examLevel">
+      <option value="">اختر المستوى</option>
+      <option value="الأولى ثانوي">الأولى ثانوي</option>
+      <option value="الثانية ثانوي">الثانية ثانوي</option>
+      <option value="النهائية">النهائية</option>
+    </select>
+    <select id="examBranch">
+      <option value="">اختر الشعبة</option>
+      <option value="علوم تجريبية">علوم تجريبية</option>
+      <option value="رياضيات">رياضيات</option>
+      <option value="آداب وفلسفة">آداب وفلسفة</option>
+      <option value="تسيير واقتصاد">تسيير واقتصاد</option>
+    </select>
+    <input type="file" id="examImage" accept="image/*">
+    <br>
+    <button id="saveExam">حفظ</button>
+    <button class="close" id="closeModal">إغلاق</button>
+  </div>
+</div>
+
+<script>
+const themeToggle=document.getElementById("themeToggle");
+themeToggle.addEventListener("click",()=>{
+  document.body.classList.toggle("light");
+  themeToggle.textContent=document.body.classList.contains("light")?"🌞":"🌙";
+});
+
+const modal=document.getElementById("addModal");
+const openBtn=document.getElementById("addExamBtn");
+const closeBtn=document.getElementById("closeModal");
+const saveBtn=document.getElementById("saveExam");
+const list=document.getElementById("examList");
+const imgInput=document.getElementById("examImage");
+
+let imageData="";
+
+imgInput.addEventListener("change",()=>{
+  const file=imgInput.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=()=>{ imageData=reader.result; };
+    reader.readAsDataURL(file);
+  }
+});
+
+openBtn.onclick=()=>{modal.style.display="flex";}
+closeBtn.onclick=()=>{modal.style.display="none";}
+
+function saveExamsToStorage(exams){localStorage.setItem("exams",JSON.stringify(exams));}
+function loadExamsFromStorage(){return JSON.parse(localStorage.getItem("exams")||"[]");}
+
+const filterLevel=document.getElementById("filterLevel");
+const filterBranch=document.getElementById("filterBranch");
+
+function renderExams(){
+  list.innerHTML="";
+  const exams=loadExamsFromStorage();
+  const filtered=exams.filter(e=>{
+    return (!filterLevel.value || e.level===filterLevel.value) &&
+           (!filterBranch.value || e.branch===filterBranch.value);
+  });
+  filtered.forEach((exam,index)=>{
+    const btn=document.createElement("button");
+    btn.className="exam-btn";
+    btn.innerHTML=`📄 ${exam.title}<br><small>${exam.level} - ${exam.branch}</small>
+                   <button class="delete-btn">🗑️</button>`;
+    btn.querySelector(".delete-btn").onclick=(e)=>{
+      e.stopPropagation();
+      if(confirm("هل تريد حذف هذا الامتحان؟")){
+        const allExams=loadExamsFromStorage();
+        allExams.splice(index,1);
+        saveExamsToStorage(allExams);
+        renderExams();
+      }
+    };
+    btn.onclick=()=>{
+      document.getElementById("viewTitle").textContent=exam.title;
+      document.getElementById("viewImage").src=exam.image;
+      list.style.display="none";
+      modal.style.display="none";
+      document.getElementById("examView").style.display="flex";
+    };
+    list.appendChild(btn);
+  });
+}
+
+filterLevel.addEventListener("change",renderExams);
+filterBranch.addEventListener("change",renderExams);
+
+saveBtn.onclick=()=>{
+  const title=document.getElementById("examTitle").value;
+  const level=document.getElementById("examLevel").value;
+  const branch=document.getElementById("examBranch").value;
+  if(!title||!level||!branch||!imageData){
+    alert("الرجاء ملء كل المعلومات واختيار صورة الامتحان 📷");
+    return;
+  }
+  const newExam={title,level,branch,image:imageData};
+  const exams=loadExamsFromStorage();
+  exams.push(newExam);
+  saveExamsToStorage(exams);
+  renderExams();
+  modal.style.display="none";
+};
+
+document.getElementById("backBtn").onclick=()=>{
+  document.getElementById("examView").style.display="none";
+  list.style.display="flex";
+};
+
+renderExams();
+</script>
+
+</body>
+</html>
